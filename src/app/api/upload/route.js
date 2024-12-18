@@ -2,9 +2,12 @@
 import { NextResponse } from "next/server";
 
 import { uploadToS3 } from "@/app/utils/s3";
+import redisClient from '@/app/utils/redis';
+import rsmq from '@/app/utils/rsmq';
 
 
 import mime, { contentType } from "mime-types";
+
 
 
 export async function POST(req) {
@@ -22,10 +25,17 @@ export async function POST(req) {
 
         const contentType = mime.lookup(file.name) || "application/octet-stream";
 
-        const fileURL = await uploadToS3(fileName, Buffer.from(fileBuffer), contentType);
+        const s3Url = await uploadToS3(fileName, Buffer.from(fileBuffer), contentType);
 
+        const fileId = Date.now().toString();
 
-        return NextResponse.json({ status: 200, message: "File uploaded successfully", data: { fileURL } });
+        //adding initial status to redis 
+        await redisClient.set(fileId, JSON.stringify({ status: 'uploaded', fileName, s3Url }));
+
+        //publish msg to rsmq
+        await rsmq.sendMessageAsync({ qname: 'file-processing-queue', message: JSON.stringify({ fileId, s3Url }) });
+
+        return NextResponse.json({ status: 200, message: "File uploaded successfully", data: { s3Url } });
 
     } catch (error) {
         console.log("Error uploading file ", error);

@@ -11,10 +11,13 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.713.0",
     "@aws-sdk/s3-request-presigner": "^3.713.0",
+    "ioredis": "^5.4.1",
     "mime-types": "^2.1.35",
     "next": "15.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "redis": "^4.7.0",
+    "rsmq": "^0.12.4"
   },
   "devDependencies": {
     "postcss": "^8",
