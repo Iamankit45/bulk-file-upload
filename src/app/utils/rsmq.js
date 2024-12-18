@@ -1,5 +1,5 @@
 import RedisSMQ from 'rsmq';
-import redisClient from './redis';
+import redisClient from './redis.js';
 
 const rsmq = new RedisSMQ({
     client: redisClient,
