@@ -1,5 +1,9 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import mime, { contentType } from "mime-types";
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+import { parseFile } from './fileParser.js';
+
 
 const s3Client = new S3Client({
     region: "ap-south-1",
@@ -25,6 +29,7 @@ export async function uploadToS3(key, fileBody, contentType) {
 
     try {
 
+        
         const command = new PutObjectCommand(uploadParams);
         await s3Client.send(command);
         console.log(`File uploaded successfully: ${key}`);
@@ -40,4 +45,45 @@ export async function uploadToS3(key, fileBody, contentType) {
 
     }
 
+}
+
+export async function downloadFromS3(fileUrl) 
+{
+    const bucket = process.env.AWS_BUCKET_NAME;
+    try {
+        
+        const key = fileUrl.split('.amazonaws.com/')[1];
+
+        const command = new GetObjectCommand({
+            Bucket: bucket,
+            Key:key
+        });
+
+        const response = await s3Client.send(command);
+        
+        const fileBody = await streamToBuffer(response.Body);
+        const fileExtension = key.split('.').pop().toLowerCase();
+
+        const parsedData = await parseFile(fileBody, fileExtension);
+
+        console.log(`Parsed ${fileExtension.toUpperCase()} Data:`, parsedData);
+        return parsedData;
+        
+        
+    } catch (error) 
+    {
+        console.error("Error downloading file from S3", error);
+        throw error;
+    }
+    
+
+}
+
+// Utility function to convert stream to string
+async function streamToBuffer(stream) {
+    const chunks = [];
+    for await (const chunk of stream) {
+        chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);  
 }
