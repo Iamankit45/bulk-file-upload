@@ -66,7 +66,6 @@ export async function downloadFromS3(fileUrl)
 
         const parsedData = await parseFile(fileBody, fileExtension);
 
-        console.log(`Parsed ${fileExtension.toUpperCase()} Data:`, parsedData);
         return parsedData;
         
         
