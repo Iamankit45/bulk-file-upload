@@ -5,9 +5,6 @@ import { uploadToS3 } from "@/app/utils/s3";
 import redisClient from '@/app/utils/redis';
 import rsmq from '@/app/utils/rsmq';
 import { connectToDatabase } from '@/app/utils/database';
-
-
-
 import mime, { contentType } from "mime-types";
 
 
@@ -46,7 +43,7 @@ export async function POST(req) {
         //publish msg to rsmq
         await rsmq.sendMessageAsync({ qname: 'file-processing-queue', message: JSON.stringify({ fileId, s3Url }) });
 
-        return NextResponse.json({ status: 200, message: "File uploaded successfully", data: { s3Url } });
+        return NextResponse.json({ status: 200, message: "uploaded", data: { fileId,s3Url } });
 
     } catch (error) {
         console.log("Error uploading file ", error);

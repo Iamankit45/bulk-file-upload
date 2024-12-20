@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: "Geist Sans", sans-serif;
+  }
+  
+  .container {
+    max-width: 900px;
+    padding: 0 16px;
+  }
+  

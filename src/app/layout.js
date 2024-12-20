@@ -1,4 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
 
 
 const geistSans = Geist({
@@ -19,11 +21,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        <header className="bg-gray-800 text-white p-4">
-          <h1 className="text-2xl">File Upload System</h1>
+      <body className="bg-gray-100 text-gray-800">
+        <header className="bg-blue-600 text-white p-4 shadow-md">
+          <h1 className="text-2xl font-bold">File Upload System</h1>
         </header>
-        <main className="container mx-auto mt-4">{children}</main>
+        <main className="container mx-auto mt-4 p-4">{children}</main>
       </body>
     </html>
   );

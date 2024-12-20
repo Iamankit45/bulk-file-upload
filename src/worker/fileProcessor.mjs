@@ -1,4 +1,3 @@
-
 import rsmq from '../app/utils/rsmq.js';
 import { downloadFromS3 } from '../app/utils/s3.js';
 import dotenv from 'dotenv';
@@ -14,13 +13,32 @@ async function processFile(message) {
     const { fileId, s3Url } = JSON.parse(message);
 
     try {
+
+        // Update Redis status to 'processing'
+        await redisClient.set(
+            fileId.toString(),
+            JSON.stringify({ status: 'processing', s3Url })
+        );
+        console.log(`Updated Redis to "processing" for fileId: ${fileId}`);
+
+
         const fileData = await downloadFromS3(s3Url)
+
+
+        // Update Redis status to 'validating'
+        await redisClient.set(
+            fileId.toString(),
+            JSON.stringify({ status: 'validating', s3Url })
+        );
+
         const { validRecords, invalidRecords } = validateRecords(fileData);
 
         const db = await connectToDatabase();
 
-        console.log('Valid Records:', validRecords);
-        console.log('Invalid Records:', invalidRecords);
+       
+
+        console.log('Valid Records:', validRecords.length);
+        console.log('Invalid Records:', invalidRecords.length);
 
         if (validRecords.length > 0) {
             await db.collection('records').insertMany(
