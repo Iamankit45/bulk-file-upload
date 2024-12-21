@@ -19,7 +19,7 @@ async function processFile(message) {
             fileId.toString(),
             JSON.stringify({ status: 'processing', s3Url })
         );
-        console.log(`Updated Redis to "processing" for fileId: ${fileId}`);
+        // console.log(`Updated Redis to "processing" for fileId: ${fileId}`);
 
 
         const fileData = await downloadFromS3(s3Url)

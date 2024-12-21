@@ -45,9 +45,8 @@ export default function StatusBar({ status }) {
       </div>
       <div className="relative w-full bg-gray-200 rounded-full h-2">
         <div
-          className={`h-2 rounded-full transition-all duration-500 ${
-            getProgress() === 100 ? "bg-green-500" : "bg-blue-500"
-          }`}
+          className={`h-2 rounded-full transition-all duration-500 ${getProgress() === 100 ? "bg-green-500" : "bg-blue-500"
+            }`}
           style={{ width: `${getProgress()}%` }}
         ></div>
         <p className="absolute top-[-20px] right-0 text-sm text-gray-500">{getProgress()}%</p>
