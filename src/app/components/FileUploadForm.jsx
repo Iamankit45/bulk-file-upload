@@ -1,92 +1,92 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StatusBar from './StatusBar';
 import { AiOutlineCloudUpload } from 'react-icons/ai';
 
+
 export default function FileUploadForm() {
-    const [files, setFiles] = useState([]);
-    const [statuses, setStatuses] = useState({});
+
+    console.log('Client-side FileUploadForm is executing');
+    const [file, setFile] = useState(null);
+    const [status, setStatus] = useState('idle');
+    const [fileId, setFileId] = useState(null);
+
+    
 
     const handleFileChange = (event) => {
-        const selectedFiles = Array.from(event.target.files);
-        setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+        setFile(event.target.files[0]);
     };
 
+
     const handleUpload = async () => {
-        if (files.length === 0) {
-            alert("Please select files");
+        
+        if (!file) {
+            alert("Please select a file");
             return;
         }
 
-        files.forEach(async (file) => {
-            const formData = new FormData();
-            formData.append("file", file);
+        const formData = new FormData();
+        formData.append("file", file);
 
-            setStatuses((prev) => ({ ...prev, [file.name]: "uploading" }));
 
-            try {
-                const response = await fetch("/api/upload", { method: "POST", body: formData });
-                const result = await response.json();
+        try {
 
-                if (result.status === 200) {
-                    const uploadedFile = result.data.find(f => f.fileName === file.name);
+            setStatus("Uploading...");       
+            const response = await fetch("/api/upload", { method: "POST", body: formData });           
+            const result = await response.json();
+                     
+            setFileId(result.data.fileId);
+            setStatus(result.message);
+        } catch (error) {
+            setStatus('Upload failed');
+            console.error('Upload error:', error);
+        }
+    }
 
-                    if (uploadedFile) {
-                        const fileId = uploadedFile.fileId;
-                        console.log(`File uploaded: ${fileId}`);
-                        setStatuses((prev) => ({ ...prev, [file.name]: "uploaded" }));
+    useEffect(() => {
 
-                        const interval = setInterval(async () => {
-                            try {
-                                const statusResponse = await fetch(`/api/status/${fileId}`);
-                                const statusResult = await statusResponse.json();
-                                setStatuses((prev) => ({ ...prev, [file.name]: statusResult.status }));
+        if (fileId) {
+           
+            const interval = setInterval(async () => {
+                try {
+                    
+                    const response = await fetch(`/api/status/${fileId}`);
+                    const result = await response.json();
+                    setStatus(result.status);
 
-                                if (["completed", "failed"].includes(statusResult.status)) {
-                                    clearInterval(interval);
-                                }
-                            } catch (error) {
-                                console.error(`Error fetching status for ${file.name}:`, error);
-                            }
-                        }, 500);
-                    } else {
-                        console.error("File ID not found for uploaded file.");
+                    if (['completed', 'failed'].includes(result.status)) {
+                        clearInterval(interval);
                     }
-                } else {
-                    console.error("Unexpected response format or upload failed:", result);
+                } catch (error) {
+                    console.error('Error fetching status:', error);
                 }
-            } catch (error) {
-                setStatuses((prev) => ({ ...prev, [file.name]: "failed" }));
-                console.error(`Upload error for ${file.name}:`, error);
-            }
-        });
-    };
+            }, 500);
+
+            return () => clearInterval(interval);
+        }
+
+
+    }, [fileId]);
+
 
     return (
-        <div className="bg-white shadow-md rounded-lg p-6 max-w-lg mx-auto">
-            <div className="flex items-center gap-4">
-                <label className="flex flex-col items-center justify-center border border-dashed border-gray-400 rounded-md py-10 px-4 cursor-pointer hover:bg-gray-50">
-                    <AiOutlineCloudUpload size={48} className="text-blue-600" />
-                    <span className="mt-2 text-gray-600">Choose files</span>
-                    <input type="file" multiple onChange={handleFileChange} className="hidden" />
-                </label>
-                <button
-                    onClick={handleUpload}
-                    className="bg-blue-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-600"
-                >
-                    Upload All
-                </button>
-            </div>
 
-            <div className="mt-6 space-y-4">
-                {files.map((file) => (
-                    <div key={file.name} className="border p-4 rounded-md">
-                        <p className="text-gray-700 font-medium">{file.name}</p>
-                        <StatusBar status={statuses[file.name]} />
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+        <div className="bg-white shadow-md rounded-lg p-6 max-w-lg mx-auto">
+        <div className="flex items-center gap-4">
+        <label
+          className="flex flex-col items-center justify-center border border-dashed border-gray-400 rounded-md py-10 px-4 cursor-pointer hover:bg-gray-50"
+        >
+        <AiOutlineCloudUpload size={48} className="text-blue-600" />
+        <span className="mt-2 text-gray-600">{file?.name || "Choose a file"}</span>
+        <input type="file" onChange={handleFileChange} className="hidden" />
+        </label>
+        <button
+          onClick={handleUpload}
+          className="bg-blue-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-600"
+        >Upload</button></div><StatusBar status={status} /></div>
+
+
+        
+    )
 }
